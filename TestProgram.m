@@ -29,50 +29,211 @@ try
 %Label Output via PortTalk
 
 
-% Open an on screen window using PsychImaging.
-[window, windowRect] = PsychImaging('OpenWindow', screenNumber, black);
+    % Open an on screen window using PsychImaging.
+    [window, windowRect] = PsychImaging('OpenWindow', screenNumber, black);
 
 
     % Get the size of the on screen window
-[ScreenXpixels, ScreenYpixels] = Screen('WindowSize', window);
-
-    % Query the frame duration
-    ifi = Screen('GetFlipInterval', window);
-
+    [ScreenXpixels, ScreenYpixels] = Screen('WindowSize', window);
+    
     % Get the centre coordinate of the window
     [XCenter, YCenter] = RectCenter(WindowRect);
-    %Customize the Size of the Flickering Square (pixel)
-    SizeSquare=250;
-    PosBaseSquare=[0,0,SizeSquare,SizeSquare];
-    PosCenteredSquare=CenterRectOnPointd(PosBaseSquare,XCenter,YCenter);
+    
+    
+    % Query the frame duration
+    ifi = Screen('GetFlipInterval', window);
+    ScreenRefreshRate= round(1/ifi);
+	
+    %计算不同时间段帧数
+    
+	NumBlackScreenFrames=round(TimeBlackScreen*ScreenRefreshRate);
+	
+	NumCountDownFrames=round(TimeCountDown*ScreenRefreshRate);
+	
+	NumShowImageFrames=round(TimeShowImage*ScreenRefreshRate);
+	
+	NumImitationFrames=round(TimeImitation*ScreenRefreshRate);
+	
+	NumKeepFrames=round(TimeKeep*ScreenRefreshRate);
+	
+	NumBreakFrames=round(TimeBreak*ScreenRefreshRate);
+    
+    
+    % Numer of frames to wait when specifying good timing
+    WaitFrames = 1;
+    
+    
+    
+    
+    
+    %设置窗口对象的字体和大小
+    Screen('TextFont', window, 'TimesNewRoman');
+    Screen('TextSize', window, 40);
+    
+    vbl = Screen('Flip',window);
+    
+    
+  
+   
+    
+    
 
-    % Length of time and number of frames 
+    for frame=1:NumBlackScreenFrames
+        
+    if frame == 1
+    %lptwrite调用porttalk模块进行并口输出，53264为并口（LPT）地址，1为并口输出的内容 
+    % 1：表示黑屏开始
+    % 2：表示倒计时开始
+    % 3：表示表情显示阶段 
+        % 31：代表情绪1
+        % 32：代表情绪2
+        % 33：代表情绪3
+        % 34：代表情绪4
+        % 35：代表情绪5
+        % 36：代表情绪6
+    % 4：表示表情模仿阶段
+    % 5：表示表情维持阶段
+    % 6：表示休息阶段
+    
+   
+    %黑屏开始标记  
+    lptwrite(53264,1);
+        
+    elseif frame == round(NumBlackScreenFrames/2)
+    
+    lptwrite(53264,0);    
+    
+    end    
+        
+    Screen('DrawingFinished', window);
+    vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi);    
 
-    %Customize duration of Flickering per Trial
 
-    SecFlickering = 3;
-    NumFlickeringFrames = round(SecFlickering/ ifi);
-    SequenceColor=ones(1,NumFlickeringFrames )*black;
+    end 
+
+    for trial=1:NumTrials  
+        
+ 
+        
+        for i=1:NumCountDownFrames
+            
+            if frame == 1
+            
+            %倒计时开始标记  
+            lptwrite(53264,2);
+
+            elseif frame == round(NumBlackScreenFrames/2)
+
+            lptwrite(53264,0);    
+
+            end    
+            
+            
+            DrawFormattedText(window,num2str(fix(frame/ScreenRefreshRate)), 'center', 'center', white);
+
+            Screen('DrawingFinished', window);      
+            vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi); 
+
+
+        end
+        
+        for i=1:NumShowImageFrames
+            
+            
+            if frame == 1
+            
+            %倒计时开始标记  
+            lptwrite(53264,3);
+            
+            elseif frame == round(NumBlackScreenFrames*(1/4))
+                
+            lptwrite(53264,0);
+
+            elseif frame == round(NumBlackScreenFrames*(2/4))
+                
+            lptwrite(53264,30+);
+            
+            elseif frame == round(NumBlackScreenFrames*(3/4))
+                
+            lptwrite(53264,0);
+                
+               
+
+            end    
+
+            Screen('DrawingFinished', window);
+            vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi); 
 
 
 
-for j=0:round((1/ifi)/FreqFlickering/2)-1
-
-    for i=1:NumFlickeringFrames
-       if mod(i+j,round((1/ifi)/FreqFlickering))==0          
-
-           SequenceColor(i)=white;
-
-       end
 
 
-    end
-end
-    %Customize duration of Rest between Trials
+        end
+        
+         for i=1:NumImitationFrames
+             
+             
+            if frame == 1
+            
+            %表情模仿开始标记  
+            lptwrite(53264,4);
 
-    SecRest = 2;
+            elseif frame == round(NumBlackScreenFrames/2)
 
-    NumRestFrames = round(SecRest/ ifi);
+            lptwrite(53264,0);    
+
+            end    
+
+            Screen('DrawingFinished', window);
+            vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi); 
+
+         end
+        
+         for i=1:NumKeepFrames
+             
+            if frame == 1
+            
+            %表情保持开始标记  
+            lptwrite(53264,5);
+
+            elseif frame == round(NumBlackScreenFrames/2)
+
+            lptwrite(53264,0);    
+
+            end    
+
+            Screen('DrawingFinished', window);
+            vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi); 
+
+
+
+
+
+         end
+         
+          for i=1:NumBreakFrames
+              
+            if frame == 1
+            
+            %休息开始标记  
+            lptwrite(53264,6);
+
+            elseif frame == round(NumBlackScreenFrames/2)
+
+            lptwrite(53264,0);    
+
+            end    
+
+            Screen('DrawingFinished', window);
+            vbl = Screen('Flip', window, vbl + (WaitFrames - 0.5) * ifi); 
+
+
+         end
+        
+        
+        
+    end 
+        
 
 
 
@@ -85,7 +246,6 @@ end
     % Numer of frames to wait when specifying good timing
     WaitFrames = 1;
 
-    Screen('Preference','SkipSyncTests', 0);
     
     
     %设置窗口对象的字体和大小
@@ -113,7 +273,7 @@ end
         for frame = 1:NumFlickeringFrames
                 
             Screen('FillRect', window, SequenceColor(frame),PosCenteredSquare);
-%             DrawFormattedText(window,'4', 'center', 'center', black);
+
      
             % tell PTB that no more drawing commands will be given between coloring the
             % screen and the flip command. This, under some circumstances, can help
